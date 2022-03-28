@@ -1,6 +1,8 @@
 import pathlib
 import sys
 import struct
+import decimal
+
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -32,28 +34,30 @@ def compress():
     output = open(f"{pathlib.Path(name)}.bubylda", "wb")
     output.write(len(prob).to_bytes(1, byteorder="big"))
     # prob = {k:v for k,v in sorted(prob.items(), key=lambda x: x[0])}
+    decimal.getcontext().prec = 1000
+
     for key in prob:
         output.write(key)
         output.write(prob[key].to_bytes(4, byteorder="big"))
     for key in prob:
-        prob[key] /= float(counter)
+        prob[key] /= decimal.Decimal(counter)
 
     prob_id = {k: v for k, v in zip(prob.keys(), range(len(prob)))}
     prob = [v for v in prob.values()]
     for i in range(1, len(prob)):
         prob[i] += prob[i - 1]
     prob.insert(0, 0)
-    prob[len(prob) - 1] = float(1)
+    prob[len(prob) - 1] = decimal.Decimal(1)
     print(prob)
     print(prob_id)
-    start, end = float(0), float(1)
+    start, end = decimal.Decimal(0), decimal.Decimal(1)
     for item in content:
         interval = end - start
         end = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")] + 1]
         start = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")]]
         print(f"{start} {end}")
-    result = struct.pack('f', (end + start) / 2)
-    print(struct.pack('f', (end + start) / 2))
+    result = struct.pack('d', (end + start) / 2)
+    print(f"{(end + start) / 2} and {struct.unpack('d', result)}")
     output.write(result)
 
 
