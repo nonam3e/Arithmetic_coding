@@ -1,11 +1,15 @@
 import pathlib
 import sys
-import struct
-import decimal
 
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+# struct: dict len (1), dict (len){index(1),value len(1),value(len)},
+# len of power (1), power of 10 (len),len of data (1), data (size-previous)
+def int_to_bytes(x):
+    length = (x.bit_length() + 7) // 8
+    if length == 0:
+        length += 1
+    return length.to_bytes(1, 'big') + x.to_bytes(length, 'big')
+
 
 def compress():
     name = ''
@@ -21,47 +25,49 @@ def compress():
         exit()
     content = raw.read()
     content += (3).to_bytes(1, byteorder="big")
-    prob = {}
+    frequency = {}
     counter = 0
     for item in content:
         letter = item.to_bytes(1, byteorder="big")
-        if prob.get(letter) is None:
-            prob[letter] = 1
+        if frequency.get(letter) is None:
+            frequency[letter] = 1
         else:
-            prob[letter] += 1
+            frequency[letter] += 1
         counter += 1
 
     output = open(f"{pathlib.Path(name)}.bubylda", "wb")
-    output.write(len(prob).to_bytes(1, byteorder="big"))
-    # prob = {k:v for k,v in sorted(prob.items(), key=lambda x: x[0])}
-    decimal.getcontext().prec = 1000
-
-    for key in prob:
-        output.write(key)
-        output.write(prob[key].to_bytes(4, byteorder="big"))
-    for key in prob:
-        prob[key] /= decimal.Decimal(counter)
-
-    prob_id = {k: v for k, v in zip(prob.keys(), range(len(prob)))}
-    prob = [v for v in prob.values()]
-    for i in range(1, len(prob)):
-        prob[i] += prob[i - 1]
-    prob.insert(0, 0)
-    prob[len(prob) - 1] = decimal.Decimal(1)
-    print(prob)
-    print(prob_id)
-    start, end = decimal.Decimal(0), decimal.Decimal(1)
+    output.write(len(frequency).to_bytes(1, byteorder="big"))
+    frequency = {k: v for k, v in sorted(frequency.items(), key=lambda x: x[0])}
+    frequency_id = {k: v for k, v in zip(range(len(frequency)), frequency.keys())}
+    frequency_reverse_id = {v: k for k, v in zip(range(len(frequency)), frequency.keys())}
+    frequency = [v for v in frequency.values()]
+    cumulative_freq = {frequency_id[0]: 0}
+    output.write(frequency_id[0])
+    output.write(int_to_bytes(cumulative_freq[frequency_id[0]]))
+    for i in range(1, len(frequency)):
+        cumulative_freq[frequency_id[i]] = cumulative_freq[frequency_id[i - 1]] + frequency[i - 1]
+        output.write(frequency_id[i])
+        output.write(int_to_bytes(cumulative_freq[frequency_id[i]]))
+    print(cumulative_freq)
+    product_freq = 1
+    l_bound = 0
+    base_power = counter - 1
     for item in content:
-        interval = end - start
-        end = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")] + 1]
-        start = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")]]
-        print(f"{start} {end}")
-    result = struct.pack('d', (end + start) / 2)
-    print(f"{(end + start) / 2} and {struct.unpack('d', result)}")
-    output.write(result)
+        l_bound += (counter ** base_power) * cumulative_freq[item.to_bytes(1, byteorder="big")] * product_freq
+        product_freq *= frequency[frequency_reverse_id[item.to_bytes(1, byteorder="big")]]
+        base_power -= 1
+    u_bound = l_bound + product_freq
+    print(f"L: {l_bound}\nU: {u_bound}")
+    dec_power = 0
+    sub = u_bound - l_bound
+    while sub >= 10:
+        sub //= 10
+        dec_power += 1
+    u_bound //= 10 ** dec_power
+    print(f"F: {u_bound * 10 ** dec_power}")
+    output.write(int_to_bytes(dec_power))
+    output.write(int_to_bytes(u_bound))
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     compress()
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
