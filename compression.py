@@ -9,6 +9,20 @@ def int_to_bytes(x):
     if length == 0:
         length += 1
     return length.to_bytes(1, 'big') + x.to_bytes(length, 'big')
+def int_bytes(x):
+    length = (x.bit_length() + 7) // 8
+    if length == 0:
+        length += 1
+    return x.to_bytes(length, 'big')
+
+def fast_power(base, power):
+    result = 1
+    while power > 0:
+        if power % 2 == 1:
+            result = (result * base)
+        power = power // 2
+        base = (base * base)
+    return result
 
 
 def compress():
@@ -51,11 +65,9 @@ def compress():
     print(cumulative_freq)
     product_freq = 1
     l_bound = 0
-    base_power = counter - 1
     for item in content:
-        l_bound += (counter ** base_power) * cumulative_freq[item.to_bytes(1, byteorder="big")] * product_freq
+        l_bound += l_bound * counter + cumulative_freq[item.to_bytes(1, byteorder="big")] * product_freq
         product_freq *= frequency[frequency_reverse_id[item.to_bytes(1, byteorder="big")]]
-        base_power -= 1
     u_bound = l_bound + product_freq
     print(f"L: {l_bound}\nU: {u_bound}")
     dec_power = 0
@@ -63,10 +75,10 @@ def compress():
     while sub >= 10:
         sub //= 10
         dec_power += 1
-    u_bound //= 10 ** dec_power
+    u_bound //= fast_power(10, dec_power)
     print(f"F: {u_bound * 10 ** dec_power}")
     output.write(int_to_bytes(dec_power))
-    output.write(int_to_bytes(u_bound))
+    output.write(int_bytes(u_bound))
 
 
 if __name__ == '__main__':
