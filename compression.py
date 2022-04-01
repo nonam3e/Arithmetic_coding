@@ -32,7 +32,7 @@ def compress():
         counter += 1
 
     output = open(f"{pathlib.Path(name)}.bubylda", "wb")
-    output.write(len(prob).to_bytes(1, byteorder="big"))
+    output.write((len(prob)%256).to_bytes(1, byteorder="big"))
     # prob = {k:v for k,v in sorted(prob.items(), key=lambda x: x[0])}
     decimal.getcontext().prec = 1000
 
@@ -50,16 +50,25 @@ def compress():
     prob[len(prob) - 1] = decimal.Decimal(1)
     print(prob)
     print(prob_id)
+    chunk_size = 512
     start, end = decimal.Decimal(0), decimal.Decimal(1)
+    chunk = 0
+    result = 0
     for item in content:
         interval = end - start
         end = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")] + 1]
         start = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")]]
-        print(f"{start} {end}")
-    result = struct.pack('d', (end + start) / 2)
-    print(f"{(end + start) / 2} and {struct.unpack('d', result)}")
-    output.write(result)
-
+        chunk += 1
+        if chunk == 2:
+            chunk = 0
+            result = int(chunk_size * (end + start) / 2)
+            output.write(result.to_bytes(chunk_size//256, byteorder="big"))
+            print(result)
+            start, end = decimal.Decimal(0), decimal.Decimal(1)
+    if chunk:
+        result = int(chunk_size * (end + start) / 2)
+        output.write(result.to_bytes(chunk_size//256, byteorder="big"))
+        print(result)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
