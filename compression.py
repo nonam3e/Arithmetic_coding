@@ -57,7 +57,7 @@ def compress():
     content += (3).to_bytes(1, byteorder="big")
     output = open(f"{pathlib.Path(name)}.bubylda", "wb")
 
-    chunk_size = 256
+    chunk_size = 4
     left, right = decimal.Decimal(0), decimal.Decimal(1)
     chunk = 0
     for item in content:
@@ -66,11 +66,11 @@ def compress():
                       left + (right - left) * segments[int(item)].right
         new_position(segments, weights)
         chunk += 1
-        if chunk:
+        if chunk==3:
             chunk = 0
-            result = int(chunk_size * (left + right) / 2)
-            output.write(result.to_bytes(chunk_size//256, byteorder="big"))
-            print(f"{chunk_size * left}____{chunk_size * right}")
+            result = int(256**chunk_size * (left + right) / 2)
+            output.write(result.to_bytes(chunk_size, byteorder="big"))
+            print(f"{256**chunk_size * left}____{256**chunk_size * right}")
             left, right = decimal.Decimal(0), decimal.Decimal(1)
     print((left + right)/2)
     output.write(struct.pack("d", (left + right)/2))
