@@ -50,7 +50,7 @@ def compress():
     prob[len(prob) - 1] = decimal.Decimal(1)
     print(prob)
     print(prob_id)
-    chunk_size = 512
+    chunk_size = 4
     start, end = decimal.Decimal(0), decimal.Decimal(1)
     chunk = 0
     result = 0
@@ -59,15 +59,15 @@ def compress():
         end = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")] + 1]
         start = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")]]
         chunk += 1
-        if chunk == 2:
+        if chunk == 8:
             chunk = 0
-            result = int(chunk_size * (end + start) / 2)
-            output.write(result.to_bytes(chunk_size//256, byteorder="big"))
-            print(result)
+            result = int(256**chunk_size * (end + start) / 2)
+            output.write(result.to_bytes(chunk_size, byteorder="big"))
+            print(result, end=' ')
             start, end = decimal.Decimal(0), decimal.Decimal(1)
     if chunk:
-        result = int(chunk_size * (end + start) / 2)
-        output.write(result.to_bytes(chunk_size//256, byteorder="big"))
+        result = int(256**chunk_size * (end + start) / 2)
+        output.write(result.to_bytes(chunk_size, byteorder="big"))
         print(result)
 
 # Press the green button in the gutter to run the script.
