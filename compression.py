@@ -2,6 +2,7 @@ import pathlib
 import sys
 import struct
 import decimal
+import utils
 
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -31,10 +32,12 @@ def compress():
             prob[letter] += 1
         counter += 1
 
+    utils.print_hashsum(content)
+
     output = open(f"{pathlib.Path(name)}.bubylda", "wb")
     output.write((len(prob)%256).to_bytes(1, byteorder="big"))
     # prob = {k:v for k,v in sorted(prob.items(), key=lambda x: x[0])}
-    decimal.getcontext().prec = 1000
+    # decimal.getcontext().prec = 1000
 
     for key in prob:
         output.write(key)
@@ -50,7 +53,6 @@ def compress():
     prob[len(prob) - 1] = decimal.Decimal(1)
     print(prob)
     print(prob_id)
-    chunk_size = 4
     start, end = decimal.Decimal(0), decimal.Decimal(1)
     chunk = 0
     result = 0
@@ -59,15 +61,15 @@ def compress():
         end = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")] + 1]
         start = start + interval * prob[prob_id[item.to_bytes(1, byteorder="big")]]
         chunk += 1
-        if chunk == 8:
+        if chunk == utils.num:
             chunk = 0
-            result = int(256**chunk_size * (end + start) / 2)
-            output.write(result.to_bytes(chunk_size, byteorder="big"))
+            result = int(256**utils.chunk_size * (end + start) / 2)
+            output.write(result.to_bytes(utils.chunk_size, byteorder="big"))
             print(result, end=' ')
             start, end = decimal.Decimal(0), decimal.Decimal(1)
     if chunk:
-        result = int(256**chunk_size * (end + start) / 2)
-        output.write(result.to_bytes(chunk_size, byteorder="big"))
+        result = int(256**utils.chunk_size * (end + start) / 2)
+        output.write(result.to_bytes(utils.chunk_size, byteorder="big"))
         print(result)
 
 # Press the green button in the gutter to run the script.

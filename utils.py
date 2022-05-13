@@ -1,6 +1,8 @@
 import hashlib
 import pathlib
 
+chunk_size = 4
+num = 7
 
 def print_hashsum(content):
     try:
