@@ -1,17 +1,14 @@
 import hashlib
 import pathlib
+import decimal
 
-chunk_size = 4
-num = 7
+chunk_size = 16
+num = 20
 
 def print_hashsum(content):
-    try:
-        pathlib.Path(content).is_file()
-        content = open(content, "rb").read()
-    except TypeError:
-        if isinstance(content, bytes):
-            pass
-    finally:
-        md5 = hashlib.md5()
-        md5.update(content)
-        print(f'Checksum: {md5.hexdigest()}')
+    md5 = hashlib.md5()
+    md5.update(content)
+    print(f'Checksum: {md5.hexdigest()}')
+
+def from_interval(a,b):
+def from_bytes(a):

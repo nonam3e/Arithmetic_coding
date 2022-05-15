@@ -5,6 +5,7 @@ import decimal
 
 
 def decompress():
+    decimal.getcontext().prec = 1000
     raw = ''
     name = ''
     try:
@@ -30,8 +31,8 @@ def decompress():
         body_size -= 5
     for i in range(alph_size + 1):
         counter[i] = decimal.Decimal(counter[i]) / current_freq
-    print(counter)
-    print(symbols)
+    # print(counter)
+    # print(symbols)
     output = open(f"decompressed{pathlib.Path(name).stem}", "wb")
     while body_size != 0:
         point = int.from_bytes(raw.read(utils.chunk_size), "big") / decimal.Decimal(256 ** utils.chunk_size)
@@ -43,11 +44,13 @@ def decompress():
                 break
             point = (point - counter[start]) / (counter[start + 1] - counter[start])
             output.write(symbols[start])
-            print(symbols[start], end='')
+            # print(symbols[start], end='')
         body_size -= utils.chunk_size
     output.close()
     raw.close()
-    utils.print_hashsum(f"decompressed{pathlib.Path(name).stem}")
+    # print()
+    content = open(f"decompressed{pathlib.Path(name).stem}", "rb").read()
+    utils.print_hashsum(content)
 
 
 def binary_search(counter, num):
