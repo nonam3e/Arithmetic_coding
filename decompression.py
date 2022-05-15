@@ -35,7 +35,7 @@ def decompress():
     # print(symbols)
     output = open(f"decompressed{pathlib.Path(name).stem}", "wb")
     while body_size != 0:
-        point = int.from_bytes(raw.read(utils.chunk_size), "big") / decimal.Decimal(256 ** utils.chunk_size)
+        point = utils.from_bytes(int.from_bytes(raw.read(utils.chunk_size), "big"))
         chunk = 0
         while chunk < utils.num:
             chunk += 1

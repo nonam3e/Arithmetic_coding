@@ -63,7 +63,7 @@ def compress():
         chunk += 1
         if chunk == utils.num:
             chunk = 0
-            result = int(cap * (end + start) / 2)
+            result = utils.from_interval(start, end)
             output.write(result.to_bytes(utils.chunk_size, byteorder="big"))
             # print(result, end=' ')
             start, end = decimal.Decimal(0), decimal.Decimal(1)
