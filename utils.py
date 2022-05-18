@@ -3,6 +3,7 @@ import hashlib
 
 chunk_size = 128
 num = 150
+decimal.getcontext().prec = 1500
 
 
 def print_hashsum(content):
@@ -12,6 +13,8 @@ def print_hashsum(content):
 
 
 def from_interval(a, b):
+    if a == 0:
+        return 0
     counter = 8 * chunk_size
     c = 0
     cur_sum = 0
@@ -34,18 +37,19 @@ def from_interval(a, b):
 
 
 def from_bytes(a):
+    if a == 0:
+        return 0
     n = 0
     a_copy = a
     while True:
         n += 1
         a_copy = a_copy >> 1
-        if (a_copy & 1):
+        if a_copy & 1:
             break
-
 
     ans = 0
     prev = decimal.Decimal(1)
-    for i in range(chunk_size * 8 - 1, n - 1, -1):
+    for i in range(chunk_size * 8 - 1, n - 2, -1):
         prev /= 2
         if a >> i & 1:
             ans += prev

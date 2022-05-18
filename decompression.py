@@ -20,7 +20,10 @@ def decompress():
     body_size = pathlib.Path(name).stat().st_size
     # print(f"file size: {body_size}")
     alph_size = int.from_bytes(raw.read(1), "big")
-    body_size -= 1
+    unfilled = int.from_bytes(raw.read(1), "big")
+    if alph_size == 0:
+        alph_size = 256
+    body_size -= 2
     counter = [0]
     symbols = []
     current_freq = 0
@@ -34,14 +37,22 @@ def decompress():
     # print(counter)
     # print(symbols)
     output = open(f"decompressed{pathlib.Path(name).stem}", "wb")
-    while body_size != 0:
+    if unfilled:
+        point = utils.from_bytes(int.from_bytes(raw.read(utils.chunk_size), "big"))
+        for i in range(unfilled):
+            start = binary_search(counter, point)
+            point = (point - counter[start]) / (counter[start + 1] - counter[start])
+            output.write(symbols[start])
+        body_size -= utils.chunk_size
+
+    while body_size > 0:
         point = utils.from_bytes(int.from_bytes(raw.read(utils.chunk_size), "big"))
         chunk = 0
         while chunk < utils.num:
             chunk += 1
             start = binary_search(counter, point)
-            if symbols[start] == b'\x03':
-                break
+            # if symbols[start] == b'\x03':
+            #     break
             point = (point - counter[start]) / (counter[start + 1] - counter[start])
             output.write(symbols[start])
             # print(symbols[start], end='')
@@ -68,4 +79,5 @@ def binary_search(counter, num):
 
 
 if __name__ == '__main__':
+    decimal.getcontext().prec = 1500
     decompress()
